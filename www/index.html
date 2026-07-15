@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Nxt4 TV</title>
+<title>NXTV</title>
 <script src="hls.min.js"></script>
 <style>
   :root {
@@ -48,16 +48,17 @@
       var(--bg);
     z-index: 100;
   }
-  /* ---- Nxt4 wordmark ---- */
-  .nxt4 { display: flex; align-items: flex-start; justify-content: center; gap: 4px; line-height: .9;
+  /* ---- NXTV wordmark (.nxt4 = internal class name) ---- */
+  .nxt4 { display: flex; align-items: center; justify-content: center; gap: 4px; line-height: .9;
     font-weight: 800; font-style: italic; letter-spacing: -0.02em; }
   .nxt4 .lg { font-size: 84px; }
   .nxt4 .ltr { color: var(--text); }
   .nxt4 .lime { color: var(--accent); }
-  .nxt4 .tm { color: var(--accent); font-size: 22px; font-style: normal; font-weight: 700; margin-top: 6px; }
+  .nxt4 .tm { color: var(--accent); font-size: 22px; font-style: normal; font-weight: 700; align-self: flex-start; margin-top: 4px; }
   /* crossed-paddle × (SVG) */
-  .paddle-x { display: inline-block; width: 1.25em; height: 1.25em; vertical-align: middle; margin: 0 -.02em; position: relative; top: -.06em; }
-  .paddle-x svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .plain-x { color: var(--text); font-style: italic; font-weight: 800; margin: 0 .04em; font-size: 1.35em; display: inline-flex; align-items: center; line-height: 1; position: relative; top: -.02em; }
+  .t-remote { display: inline-block; width: .82em; height: 1.06em; vertical-align: middle; position: relative; top: -.02em; margin: 0 .01em; }
+  .t-remote svg { width: 100%; height: 100%; display: block; overflow: visible; }
   .nxt4-tag { text-align: center; font-style: italic; font-weight: 700; color: var(--accent);
     font-size: 22px; margin-top: 14px; letter-spacing: .01em; }
   .nxt4-tag .dash { letter-spacing: .05em; }
@@ -79,6 +80,52 @@
   .hint { color: var(--muted); font-size: 13px; margin-top: 20px; line-height: 1.6; }
 
   /* ---------- App shell ---------- */
+  /* ---------- Home screen ---------- */
+  #home { display: none; position: fixed; inset: 0; overflow-y: auto; z-index: 60;
+    background: radial-gradient(1400px 700px at 20% -10%, rgba(195,236,63,0.08), transparent 60%), var(--bg);
+    padding: 48px 56px; }
+  #home.on { display: block; }
+  .home-head { margin-bottom: 34px; }
+  .home-sub { color: var(--muted); font-size: 15px; margin-top: 8px; }
+  .home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; }
+  .acct-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; position: relative; }
+  .acct-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .acct-card .badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--bg); background: var(--accent); border-radius: 6px; padding: 3px 8px; margin-bottom: 12px; }
+  .acct-card .badge.xtream { background: var(--accent); }
+  .acct-card .badge.m3u_url, .acct-card .badge.m3u_file { background: #7fd0ff; }
+  .acct-card h3 { font-size: 20px; letter-spacing: -0.01em; margin-bottom: 4px; word-break: break-word; }
+  .acct-card .meta { color: var(--muted); font-size: 12.5px; font-family: var(--mono); word-break: break-all; margin-bottom: 16px; }
+  .acct-card .active-tag { position: absolute; top: 18px; right: 18px; color: var(--accent); font-size: 12px; font-weight: 700; }
+  .card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .card-actions button { flex: 1; min-width: 84px; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    border: 1px solid var(--line); background: var(--bg); color: var(--text); }
+  .card-actions button.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .card-actions button.danger.focused, .card-actions button.danger:focus { box-shadow: 0 0 0 3px var(--live); }
+  .card-actions button.focused, .card-actions button:focus { outline: none; box-shadow: 0 0 0 3px var(--focus); }
+  .add-card { display: flex; align-items: center; justify-content: center; min-height: 180px; border: 2px dashed var(--line);
+    border-radius: 14px; color: var(--muted); font-size: 16px; font-weight: 600; background: transparent; }
+  .add-card.focused, .add-card:focus { outline: none; border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 2px var(--focus); }
+
+  /* ---------- Account editor modal ---------- */
+  #editor { display: none; position: fixed; inset: 0; z-index: 80; align-items: center; justify-content: center;
+    background: rgba(8,14,10,0.78); padding: 20px; overflow-y: auto; }
+  #editor.on { display: flex; }
+  .editor-card { width: min(520px, 94vw); background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 32px; }
+  .editor-card h2 { font-size: 22px; margin-bottom: 20px; }
+  .seg-h { display: flex; gap: 6px; background: var(--bg); border-radius: 10px; padding: 4px; }
+  .seg-h .src-btn { flex: 1; padding: 10px 6px; background: none; border: none; color: var(--muted); font-size: 13px; font-weight: 600; border-radius: 7px; }
+  .seg-h .src-btn.active { background: var(--panel-2); color: var(--accent); }
+  .seg-h .src-btn.focused, .seg-h .src-btn:focus { outline: none; box-shadow: 0 0 0 2px var(--focus); }
+  .file-note { color: var(--muted); font-size: 12.5px; margin-top: 8px; }
+  .editor-actions { display: flex; gap: 12px; margin-top: 12px; }
+  .editor-actions .btn-primary { flex: 1; }
+  .btn-ghost { flex: 1; padding: 16px; background: none; border: 1px solid var(--line); color: var(--text); border-radius: var(--radius); font-size: 16px; font-weight: 600; }
+  .btn-ghost.focused, .btn-ghost:focus { outline: none; box-shadow: 0 0 0 3px var(--focus); }
+  .home-btn { width: 100%; padding: 12px; margin-bottom: 14px; background: var(--panel-2); border: 1px solid var(--line);
+    color: var(--text); border-radius: 10px; font-size: 15px; font-weight: 600; }
+  .home-btn.focused, .home-btn:focus { outline: none; box-shadow: 0 0 0 3px var(--focus); color: var(--accent); }
+
   #app { display: none; height: 100%; grid-template-columns: 260px 400px 1fr; }
   #app.on { display: grid; }
   .col { height: 100%; overflow-y: auto; border-right: 1px solid var(--line); scrollbar-width: none; }
@@ -100,6 +147,7 @@
   .channels { background: var(--panel); }
   .col-head { position: sticky; top: 0; background: var(--panel); padding: 18px 16px 12px; border-bottom: 1px solid var(--line); z-index: 2; }
   .ch-list { padding: 10px; }
+  .ch-count { padding: 6px 12px 10px; font-size: 12px; color: var(--muted); font-family: var(--mono); letter-spacing: .02em; }
   .ch { display: flex; align-items: center; gap: 14px; padding: 13px 14px; border-radius: 10px; margin-bottom: 4px; }
   .ch.active { background: linear-gradient(90deg, rgba(195,236,63,0.16), transparent); box-shadow: inset 3px 0 0 var(--accent); }
   .ch img, .ch .noimg { width: 52px; height: 52px; border-radius: 9px; object-fit: contain; background: var(--bg); flex-shrink: 0; }
@@ -136,9 +184,9 @@
   <div class="login-card">
     <div class="nxt4 lg">
       <span class="ltr">N</span>
-      <span class="paddle-x"><svg viewBox="0 0 100 100"><g transform="rotate(45 50 50)"><rect x="41" y="14" width="18" height="72" rx="9" fill="var(--text)"/><circle cx="50" cy="26" r="4" fill="var(--accent)"/><circle cx="46" cy="42" r="2.3" fill="var(--bg)"/><circle cx="54" cy="42" r="2.3" fill="var(--bg)"/><circle cx="46" cy="52" r="2.3" fill="var(--bg)"/><circle cx="54" cy="52" r="2.3" fill="var(--bg)"/><rect x="45" y="64" width="10" height="14" rx="5" fill="var(--accent)"/></g><g transform="rotate(-45 50 50)"><rect x="41" y="14" width="18" height="72" rx="9" fill="var(--accent)"/><circle cx="50" cy="26" r="4" fill="var(--bg)"/><circle cx="46" cy="42" r="2.3" fill="var(--bg)"/><circle cx="54" cy="42" r="2.3" fill="var(--bg)"/><circle cx="46" cy="52" r="2.3" fill="var(--bg)"/><circle cx="54" cy="52" r="2.3" fill="var(--bg)"/><rect x="45" y="64" width="10" height="14" rx="5" fill="var(--bg)"/></g></svg></span>
-      <span class="ltr">T</span>
-      <span class="lime">4</span>
+      <span class="plain-x">&times;</span>
+      <span class="t-remote"><svg viewBox="0 0 150 190"><g transform="skewX(-8)"><rect x="12" y="8" width="126" height="46" rx="16" fill="var(--text)"/><rect x="54" y="46" width="42" height="138" rx="20" fill="var(--text)"/><circle cx="118" cy="31" r="10" fill="var(--accent)"/><circle cx="66" cy="86" r="5" fill="var(--bg)"/><circle cx="84" cy="86" r="5" fill="var(--bg)"/><circle cx="66" cy="108" r="5" fill="var(--bg)"/><circle cx="84" cy="108" r="5" fill="var(--bg)"/><rect x="64" y="140" width="22" height="30" rx="11" fill="var(--accent)"/></g></svg></span>
+      <span class="lime">V</span>
       <span class="tm">™</span>
     </div>
     <p class="sub" style="text-align:center;margin-top:22px">Sign in with your Xtream Codes account.</p>
@@ -151,11 +199,60 @@
   </div>
 </div>
 
+<!-- HOME SCREEN -->
+<div id="home">
+  <div class="home-head">
+    <div class="nxt4" style="font-size:34px">
+      <span class="ltr">N</span><span class="plain-x">&times;</span><span class="t-remote"><svg viewBox="0 0 150 190"><g transform="skewX(-8)"><rect x="12" y="8" width="126" height="46" rx="16" fill="var(--text)"/><rect x="54" y="46" width="42" height="138" rx="20" fill="var(--text)"/><circle cx="118" cy="31" r="10" fill="var(--accent)"/><circle cx="66" cy="86" r="5" fill="var(--bg)"/><circle cx="84" cy="86" r="5" fill="var(--bg)"/><circle cx="66" cy="108" r="5" fill="var(--bg)"/><circle cx="84" cy="108" r="5" fill="var(--bg)"/><rect x="64" y="140" width="22" height="30" rx="11" fill="var(--accent)"/></g></svg></span><span class="lime">V</span><span class="tm" style="font-size:13px">™</span>
+    </div>
+    <div class="home-sub">Your playlists &amp; accounts</div>
+  </div>
+  <div class="home-grid" id="homeGrid"></div>
+</div>
+
+<!-- ACCOUNT EDITOR MODAL -->
+<div id="editor">
+  <div class="editor-card">
+    <h2 id="editorTitle">Add account</h2>
+    <div class="field">
+      <label>Source type</label>
+      <div class="seg-h">
+        <button class="src-btn focusable active" data-src="xtream">Xtream Codes</button>
+        <button class="src-btn focusable" data-src="m3u_url">M3U URL</button>
+        <button class="src-btn focusable" data-src="m3u_file">M3U File</button>
+      </div>
+    </div>
+    <div class="field"><label>Name (label)</label><input id="e_name" class="focusable" placeholder="My provider" autocomplete="off"></div>
+
+    <div class="src-fields" data-for="xtream">
+      <div class="field"><label>Server URL</label><input id="e_host" class="focusable" placeholder="http://example.com:8080" autocomplete="off" spellcheck="false"></div>
+      <div class="field"><label>Username</label><input id="e_user" class="focusable" autocomplete="off" spellcheck="false"></div>
+      <div class="field"><label>Password</label><input id="e_pass" class="focusable" type="password" autocomplete="off"></div>
+    </div>
+    <div class="src-fields" data-for="m3u_url" style="display:none">
+      <div class="field"><label>M3U Playlist URL</label><input id="e_m3uurl" class="focusable" placeholder="http://example.com/playlist.m3u" autocomplete="off" spellcheck="false"></div>
+    </div>
+    <div class="src-fields" data-for="m3u_file" style="display:none">
+      <div class="field"><label>M3U File</label>
+        <input id="e_m3ufile" type="file" accept=".m3u,.m3u8,audio/x-mpegurl,application/x-mpegurl" class="focusable">
+        <div class="file-note" id="e_filenote">No file chosen.</div>
+      </div>
+    </div>
+
+    <div class="editor-actions">
+      <button class="btn-primary focusable" id="e_save">Save</button>
+      <button class="btn-ghost focusable" id="e_cancel">Cancel</button>
+    </div>
+    <div class="err" id="e_err"></div>
+  </div>
+</div>
+
 <div id="app">
   <div class="col nav" data-col="0">
     <div class="nxt4" style="justify-content:flex-start;padding:6px 8px 22px;font-size:30px">
-      <span class="ltr">N</span><span class="paddle-x"><svg viewBox="0 0 100 100"><g transform="rotate(45 50 50)"><rect x="41" y="14" width="18" height="72" rx="9" fill="var(--text)"/><circle cx="50" cy="26" r="4" fill="var(--accent)"/><circle cx="46" cy="42" r="2.3" fill="var(--bg)"/><circle cx="54" cy="42" r="2.3" fill="var(--bg)"/><circle cx="46" cy="52" r="2.3" fill="var(--bg)"/><circle cx="54" cy="52" r="2.3" fill="var(--bg)"/><rect x="45" y="64" width="10" height="14" rx="5" fill="var(--accent)"/></g><g transform="rotate(-45 50 50)"><rect x="41" y="14" width="18" height="72" rx="9" fill="var(--accent)"/><circle cx="50" cy="26" r="4" fill="var(--bg)"/><circle cx="46" cy="42" r="2.3" fill="var(--bg)"/><circle cx="54" cy="42" r="2.3" fill="var(--bg)"/><circle cx="46" cy="52" r="2.3" fill="var(--bg)"/><circle cx="54" cy="52" r="2.3" fill="var(--bg)"/><rect x="45" y="64" width="10" height="14" rx="5" fill="var(--bg)"/></g></svg></span><span class="ltr">T</span><span class="lime">4</span><span class="tm" style="font-size:11px;margin-top:2px">™</span>
+      <span class="ltr">N</span><span class="plain-x">&times;</span><span class="t-remote"><svg viewBox="0 0 150 190"><g transform="skewX(-8)"><rect x="12" y="8" width="126" height="46" rx="16" fill="var(--text)"/><rect x="54" y="46" width="42" height="138" rx="20" fill="var(--text)"/><circle cx="118" cy="31" r="10" fill="var(--accent)"/><circle cx="66" cy="86" r="5" fill="var(--bg)"/><circle cx="84" cy="86" r="5" fill="var(--bg)"/><circle cx="66" cy="108" r="5" fill="var(--bg)"/><circle cx="84" cy="108" r="5" fill="var(--bg)"/><rect x="64" y="140" width="22" height="30" rx="11" fill="var(--accent)"/></g></svg></span><span class="lime">V</span><span class="tm" style="font-size:11px;margin-top:2px">™</span>
     </div>
+    <button class="home-btn focusable" id="homeBtn">⌂ Home</button>
     <div class="seg">
       <button data-type="live" class="active focusable">Live TV</button>
       <button data-type="vod" class="focusable">Movies</button>
@@ -167,7 +264,7 @@
   </div>
 
   <div class="col channels" data-col="1">
-    <div class="col-head"><input id="chSearch" class="focusable" placeholder="Search channels…"></div>
+    <div class="col-head"><input id="chSearch" class="focusable" placeholder="Search in selection…"></div>
     <div class="ch-list" id="chList"><div class="empty">Pick a category.</div></div>
   </div>
 
@@ -187,61 +284,300 @@ let progress=0, progTimer=null;
 function startLoad(){ progress=8; loadbar.style.width='8%'; clearInterval(progTimer); progTimer=setInterval(()=>{progress=Math.min(progress+Math.random()*12,88);loadbar.style.width=progress+'%';},300); }
 function endLoad(){ clearInterval(progTimer); loadbar.style.width='100%'; setTimeout(()=>loadbar.style.width='0',350); }
 
+/* ---------- Multi-account storage ---------- */
 const store = {
+  get accounts(){ try{return JSON.parse(localStorage.getItem('nxtv_accounts'))||[];}catch{return [];} },
+  set accounts(v){ localStorage.setItem('nxtv_accounts',JSON.stringify(v)); },
+  get activeId(){ return localStorage.getItem('nxtv_active')||null; },
+  set activeId(v){ if(v) localStorage.setItem('nxtv_active',v); else localStorage.removeItem('nxtv_active'); },
+  // legacy single-account fallback
   get creds(){ try{return JSON.parse(localStorage.getItem('xtream_creds'));}catch{return null;} },
-  set creds(v){ localStorage.setItem('xtream_creds',JSON.stringify(v)); },
-  clear(){ localStorage.removeItem('xtream_creds'); }
+  clearLegacy(){ localStorage.removeItem('xtream_creds'); }
 };
-let CREDS=null;
+// migrate an old single xtream_creds into the accounts list once
+(function migrate(){
+  const legacy=store.creds;
+  if(legacy && !store.accounts.length){
+    const acc={id:'acc_'+Date.now(),type:'xtream',name:legacy.host.replace(/^https?:\/\//,''),
+      host:legacy.host,user:legacy.user,pass:legacy.pass};
+    store.accounts=[acc]; store.activeId=acc.id; store.clearLegacy();
+  }
+})();
+
+function getAccounts(){ return store.accounts; }
+function getAccount(id){ return store.accounts.find(a=>a.id===id)||null; }
+function saveAccount(acc){
+  const list=store.accounts; const i=list.findIndex(a=>a.id===acc.id);
+  if(i>=0) list[i]=acc; else list.push(acc);
+  store.accounts=list;
+}
+function deleteAccount(id){
+  store.accounts=store.accounts.filter(a=>a.id!==id);
+  if(store.activeId===id) store.activeId=store.accounts[0]?.id||null;
+}
+
+let CREDS=null;         // active account object
+let M3U={streams:[],cats:{}}; // parsed M3U cache for the active M3U account
 let state={ type:'live', cats:[], activeCat:null, channels:[], activeCh:null };
 let hls=null;
 const enc=encodeURIComponent;
 const esc=s=>String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 
+/* ---------- M3U parsing ---------- */
+function parseM3U(text){
+  const lines=text.split(/\r?\n/); const streams=[]; let cur=null; let id=0;
+  for(let raw of lines){
+    const line=raw.trim();
+    if(line.startsWith('#EXTINF')){
+      const comma=line.indexOf(',');
+      const name=comma>=0?line.slice(comma+1).trim():'Untitled';
+      const attr=k=>{const m=line.match(new RegExp(k+'="([^"]*)"','i'));return m?m[1]:'';};
+      cur={stream_id:++id,name,stream_icon:attr('tvg-logo'),group:attr('group-title')||'Ungrouped'};
+    } else if(line && !line.startsWith('#')){
+      if(cur){ cur.url=line; streams.push(cur); cur=null; }
+      else { streams.push({stream_id:++id,name:(line.split('/').pop()||'Stream'),url:line,group:'Ungrouped',stream_icon:''}); }
+    }
+  }
+  return streams;
+}
+function m3uCategories(streams){
+  const seen=new Map();
+  for(const s of streams){ const g=s.group||'Ungrouped';
+    if(!seen.has(g)) seen.set(g,{category_id:g,category_name:g}); }
+  return [...seen.values()];
+}
+
 function apiBase(){ return `${CREDS.host}/player_api.php?username=${enc(CREDS.user)}&password=${enc(CREDS.pass)}`; }
 async function api(params){ const r=await fetch(`${apiBase()}&${params}`); if(!r.ok)throw new Error('HTTP '+r.status); return r.json(); }
 
-/* ---------- Auth ---------- */
-async function connect(host,user,pass){
-  host=host.trim().replace(/\/+$/,''); if(!/^https?:\/\//i.test(host))host='http://'+host;
-  CREDS={host,user:user.trim(),pass:pass.trim()};
-  const r=await fetch(`${host}/player_api.php?username=${enc(CREDS.user)}&password=${enc(CREDS.pass)}`);
+/* ---------- Account activation ---------- */
+// Validate + load an Xtream account (returns user_info)
+async function xtreamVerify(acc){
+  const host=acc.host.replace(/\/+$/,'');
+  const r=await fetch(`${host}/player_api.php?username=${enc(acc.user)}&password=${enc(acc.pass)}`);
   if(!r.ok)throw new Error('Server returned '+r.status);
   const d=await r.json();
   if(!d.user_info||d.user_info.auth===0)throw new Error('Invalid username or password.');
   if(d.user_info.status&&d.user_info.status.toLowerCase()!=='active')throw new Error('Account status: '+d.user_info.status);
-  store.creds=CREDS; return d;
+  return d;
 }
+// Fetch + parse an M3U account (URL or stored file text)
+async function m3uLoad(acc){
+  let text;
+  if(acc.type==='m3u_file'){
+    if(!acc.m3uText) throw new Error('No stored playlist file.');
+    text=acc.m3uText;
+  } else {
+    const r=await fetch(acc.url);
+    if(!r.ok)throw new Error('Could not fetch playlist ('+r.status+').');
+    text=await r.text();
+  }
+  const streams=parseM3U(text);
+  if(!streams.length) throw new Error('No channels found in playlist.');
+  return streams;
+}
+
+// Activate an account and enter the player. reload=true forces re-fetch.
+async function activateAccount(id, reload){
+  const acc=getAccount(id); if(!acc) return;
+  startLoad();
+  try{
+    if(acc.type==='xtream'){
+      await xtreamVerify(acc);
+      CREDS={type:'xtream',host:acc.host.replace(/\/+$/,''),user:acc.user,pass:acc.pass};
+    } else { // m3u_url or m3u_file
+      const streams=await m3uLoad(acc);
+      M3U={streams,cats:{}};
+      CREDS={type:'m3u',name:acc.name};
+    }
+    store.activeId=id;
+    endLoad();
+    enterApp();
+  }catch(e){
+    endLoad();
+    alert('Could not load "'+acc.name+'": '+(e.message.includes('Failed to fetch')?'Server unreachable or blocked.':e.message));
+    showHome();
+  }
+}
+
+/* ---------- Home screen ---------- */
+function showHome(){
+  $('#login').style.display='none';
+  $('#editor').classList.remove('on');
+  $('#app').classList.remove('on');
+  $('#home').classList.add('on');
+  renderHome();
+  setTimeout(()=>{ const f=$('#home .focusable'); if(f) focusEl(f); },80);
+}
+function renderHome(){
+  const grid=$('#homeGrid'); grid.innerHTML='';
+  const accts=getAccounts();
+  accts.forEach(acc=>{
+    const active=acc.id===store.activeId;
+    const card=document.createElement('div');
+    card.className='acct-card'+(active?' active':'');
+    const typeLabel = acc.type==='xtream'?'Xtream':(acc.type==='m3u_url'?'M3U URL':'M3U File');
+    const meta = acc.type==='xtream' ? esc(acc.host)
+               : acc.type==='m3u_url' ? esc(acc.url)
+               : (acc.m3uText? (acc.m3uName||'local file')+' · '+(acc.m3uCount||'?')+' ch' : 'local file');
+    card.innerHTML =
+      `<span class="badge ${acc.type}">${typeLabel}</span>`+
+      (active?'<span class="active-tag">● Active</span>':'')+
+      `<h3>${esc(acc.name||'Untitled')}</h3>`+
+      `<div class="meta">${meta}</div>`+
+      `<div class="card-actions">
+         <button class="primary focusable" data-act="open">${active?'Open':'Use'}</button>
+         <button class="focusable" data-act="reload">Reload</button>
+         <button class="focusable" data-act="edit">Edit</button>
+         <button class="danger focusable" data-act="del">Delete</button>
+       </div>`;
+    card.querySelector('[data-act=open]').onclick=()=>activateAccount(acc.id,false);
+    card.querySelector('[data-act=reload]').onclick=()=>activateAccount(acc.id,true);
+    card.querySelector('[data-act=edit]').onclick=()=>openEditor(acc.id);
+    card.querySelector('[data-act=del]').onclick=()=>{
+      if(confirm('Delete "'+(acc.name||'this account')+'"?')){ deleteAccount(acc.id); renderHome(); }
+    };
+    grid.appendChild(card);
+  });
+  const add=document.createElement('button');
+  add.className='add-card focusable'; add.textContent='+  Add account';
+  add.onclick=()=>openEditor(null);
+  grid.appendChild(add);
+}
+$('#homeBtn').addEventListener('click', ()=>{ if(hls){hls.destroy();hls=null;} const v=$('#video'); if(v){v.pause();v.removeAttribute('src');v.load();} showHome(); });
+
+/* ---------- Account editor ---------- */
+let editingId=null, pickedSrc='xtream', pickedFile=null;
+function setSrc(src){
+  pickedSrc=src;
+  document.querySelectorAll('.src-btn').forEach(b=>b.classList.toggle('active',b.dataset.src===src));
+  document.querySelectorAll('.src-fields').forEach(f=>f.style.display = f.dataset.for===src?'':'none');
+}
+document.querySelectorAll('.src-btn').forEach(b=> b.onclick=()=>setSrc(b.dataset.src));
+$('#e_m3ufile').addEventListener('change',e=>{
+  pickedFile=e.target.files[0]||null;
+  $('#e_filenote').textContent = pickedFile? pickedFile.name+' selected' : 'No file chosen.';
+});
+function openEditor(id){
+  editingId=id;
+  const acc=id?getAccount(id):null;
+  $('#editorTitle').textContent = acc?'Edit account':'Add account';
+  $('#e_err').textContent='';
+  pickedFile=null; $('#e_filenote').textContent='No file chosen.'; $('#e_m3ufile').value='';
+  $('#e_name').value=acc?.name||'';
+  $('#e_host').value=acc?.host||''; $('#e_user').value=acc?.user||''; $('#e_pass').value=acc?.pass||'';
+  $('#e_m3uurl').value=acc?.url||'';
+  setSrc(acc?.type || 'xtream');
+  $('#home').classList.remove('on'); $('#login').style.display='none';
+  $('#editor').classList.add('on');
+  setTimeout(()=>focusEl($('#e_name')),80);
+}
+function closeEditor(){ $('#editor').classList.remove('on'); showHome(); }
+$('#e_cancel').addEventListener('click',closeEditor);
+$('#e_save').addEventListener('click',async()=>{
+  const err=$('#e_err'); err.textContent='';
+  const name=$('#e_name').value.trim();
+  const src=pickedSrc;
+  const base={ id: editingId || ('acc_'+Date.now()), type: src, name };
+  try{
+    if(src==='xtream'){
+      let host=$('#e_host').value.trim(); const user=$('#e_user').value.trim(), pass=$('#e_pass').value.trim();
+      if(!host||!user||!pass){err.textContent='Fill in server, username and password.';return;}
+      if(!/^https?:\/\//i.test(host)) host='http://'+host;
+      Object.assign(base,{host,user,pass});
+      if(!base.name) base.name=host.replace(/^https?:\/\//,'');
+    } else if(src==='m3u_url'){
+      const url=$('#e_m3uurl').value.trim();
+      if(!url){err.textContent='Enter the M3U playlist URL.';return;}
+      Object.assign(base,{url});
+      if(!base.name) base.name=url.split('/').pop()||'M3U playlist';
+    } else { // m3u_file
+      const existing=editingId?getAccount(editingId):null;
+      if(pickedFile){
+        const text=await pickedFile.text();
+        const streams=parseM3U(text);
+        if(!streams.length){err.textContent='That file has no channels.';return;}
+        Object.assign(base,{m3uText:text,m3uName:pickedFile.name,m3uCount:streams.length});
+        if(!base.name) base.name=pickedFile.name.replace(/\.(m3u8?|txt)$/i,'');
+      } else if(existing&&existing.m3uText){
+        Object.assign(base,{m3uText:existing.m3uText,m3uName:existing.m3uName,m3uCount:existing.m3uCount});
+      } else {
+        err.textContent='Choose an M3U file.';return;
+      }
+    }
+    saveAccount(base);
+    closeEditor();
+  }catch(e){ err.textContent=e.message||'Could not save.'; }
+});
+
+/* ---------- Login (first-run single form still available) ---------- */
 $('#loginBtn').addEventListener('click',async()=>{
   const btn=$('#loginBtn'),err=$('#loginErr'); err.textContent='';
   const host=$('#host').value,user=$('#user').value,pass=$('#pass').value;
   if(!host||!user||!pass){err.textContent='Fill in all fields.';return;}
   btn.disabled=true;btn.textContent='Connecting…';startLoad();
-  try{ await connect(host,user,pass); endLoad(); enterApp(); }
+  try{
+    const acc={id:'acc_'+Date.now(),type:'xtream',name:host.replace(/^https?:\/\//,'').trim(),
+      host:host.trim(),user:user.trim(),pass:pass.trim()};
+    await xtreamVerify(acc);
+    saveAccount(acc); store.activeId=acc.id;
+    endLoad();
+    CREDS={type:'xtream',host:acc.host.replace(/\/+$/,''),user:acc.user,pass:acc.pass};
+    enterApp();
+  }
   catch(e){ endLoad(); err.textContent=e.message.includes('Failed to fetch')?'Could not reach server. Check the URL and port.':e.message; }
   finally{ btn.disabled=false; btn.textContent='Connect'; }
 });
 $('#logout').addEventListener('click',()=>{
-  store.clear(); if(hls){hls.destroy();hls=null;}
-  $('#app').classList.remove('on'); $('#login').style.display='flex';
-  $('#host').value=$('#user').value=$('#pass').value='';
-  setTimeout(()=>focusEl($('#host')),50);
+  if(hls){hls.destroy();hls=null;}
+  $('#app').classList.remove('on');
+  showHome();
 });
-function enterApp(){ $('#login').style.display='none'; $('#app').classList.add('on'); loadCategories(); setTimeout(()=>focusFirstInCol(0),100); }
+function enterApp(){
+  $('#login').style.display='none'; $('#home').classList.remove('on'); $('#editor').classList.remove('on');
+  $('#app').classList.add('on');
+  // M3U has no Movies/Series tabs — hide them
+  const isM3u=CREDS.type==='m3u';
+  document.querySelector('.seg button[data-type=vod]').style.display=isM3u?'none':'';
+  document.querySelector('.seg button[data-type=series]').style.display=isM3u?'none':'';
+  state.type='live'; state.activeCat=null; state.channels=[];
+  document.querySelectorAll('.seg button').forEach(x=>x.classList.remove('active'));
+  document.querySelector('.seg button[data-type=live]').classList.add('active');
+  $('#chList').innerHTML='<div class="empty">Pick a category.</div>';
+  loadCategories(); setTimeout(()=>focusFirstInCol(0),100);
+}
 
 /* ---------- Categories ---------- */
 const catAction={live:'get_live_categories',vod:'get_vod_categories',series:'get_series_categories'};
 const streamAction={live:'get_live_streams',vod:'get_vod_streams',series:'get_series'};
 async function loadCategories(){
   const list=$('#catList'); list.innerHTML='<div class="empty">Loading…</div>'; startLoad();
-  try{ const c=await api('action='+catAction[state.type]); state.cats=Array.isArray(c)?c:[]; renderCategories(); }
+  try{
+    if(CREDS.type==='m3u'){
+      // M3U has no live/vod/series split — treat everything as "live"
+      state.cats = m3uCategories(M3U.streams);
+    } else {
+      const c=await api('action='+catAction[state.type]);
+      state.cats=Array.isArray(c)?c:[];
+    }
+    renderCategories();
+  }
   catch{ list.innerHTML='<div class="empty">Failed to load.</div>'; } finally{ endLoad(); }
 }
 function renderCategories(){
   const q=$('#catSearch').value.toLowerCase(), list=$('#catList');
-  const f=state.cats.filter(c=>c.category_name.toLowerCase().includes(q));
-  if(!f.length){list.innerHTML='<div class="empty">No categories.</div>';return;}
   list.innerHTML='';
+  // Pinned "All" pseudo-category (only shows when it matches the filter, or filter is empty)
+  if('all'.includes(q) || q===''){
+    const all=document.createElement('div');
+    all.className='cat-item focusable'+(state.activeCat==='__all__'?' active':'');
+    all.tabIndex=0;
+    all.innerHTML='<span class="name">★ All</span>';
+    all.onclick=()=>{ state.activeCat='__all__'; renderCategories(); loadChannels('__all__'); };
+    list.appendChild(all);
+  }
+  const f=state.cats.filter(c=>c.category_name.toLowerCase().includes(q));
+  if(!f.length && !list.children.length){list.innerHTML='<div class="empty">No categories.</div>';return;}
   f.forEach(c=>{
     const d=document.createElement('div');
     d.className='cat-item focusable'+(state.activeCat===c.category_id?' active':'');
@@ -255,19 +591,40 @@ $('#catSearch').addEventListener('input',renderCategories);
 /* ---------- Channels ---------- */
 async function loadChannels(catId){
   const list=$('#chList'); list.innerHTML='<div class="empty">Loading channels…</div>'; startLoad();
-  try{ const s=await api(`action=${streamAction[state.type]}&category_id=${catId}`); state.channels=Array.isArray(s)?s:[]; renderChannels(); }
+  try{
+    if(CREDS.type==='m3u'){
+      state.channels = catId==='__all__' ? M3U.streams.slice()
+                                         : M3U.streams.filter(s=>(s.group||'Ungrouped')===catId);
+    } else {
+      // "All" = fetch every stream in this tab (omit category_id); otherwise fetch just the category
+      const q = catId==='__all__' ? `action=${streamAction[state.type]}`
+                                   : `action=${streamAction[state.type]}&category_id=${catId}`;
+      const s=await api(q);
+      state.channels=Array.isArray(s)?s:[];
+    }
+    renderChannels();
+  }
   catch{ list.innerHTML='<div class="empty">Failed to load.</div>'; } finally{ endLoad(); }
 }
+const RENDER_CAP=300; // keep the DOM light on TV/tablet for huge "All" lists
 function renderChannels(){
-  const q=$('#chSearch').value.toLowerCase(), list=$('#chList');
+  const q=$('#chSearch').value.toLowerCase().trim(), list=$('#chList');
   const items=state.channels.filter(c=>(c.name||'').toLowerCase().includes(q));
   if(!items.length){list.innerHTML='<div class="empty">No channels.</div>';return;}
   list.innerHTML='';
-  items.forEach(c=>{
+  // count header (helpful when "All" is selected or searching a big list)
+  const head=document.createElement('div');
+  head.className='ch-count';
+  const shown=Math.min(items.length,RENDER_CAP);
+  head.textContent = items.length>RENDER_CAP
+    ? `${items.length} results · showing first ${RENDER_CAP} — type to narrow`
+    : `${items.length} result${items.length===1?'':'s'}`;
+  list.appendChild(head);
+  items.slice(0,RENDER_CAP).forEach(c=>{
     const id=c.stream_id||c.series_id, logo=c.stream_icon||c.cover;
     const div=document.createElement('div');
     div.className='ch focusable'+(state.activeCh===id?' active':''); div.tabIndex=0;
-    const img=logo?`<img src="${esc(logo)}" onerror="this.outerHTML='<div class=noimg>◉</div>'">`:`<div class="noimg">◉</div>`;
+    const img=logo?`<img src="${esc(logo)}" loading="lazy" onerror="this.outerHTML='<div class=noimg>◉</div>'">`:`<div class="noimg">◉</div>`;
     const sub=state.type==='live'?'LIVE':(c.rating?'★ '+c.rating:(state.type==='series'?'SERIES':'MOVIE'));
     div.innerHTML=`${img}<div class="meta"><div class="title">${esc(c.name||'Untitled')}</div><div class="sub">${sub}</div></div>`;
     div.onclick=()=>play(c);
@@ -278,18 +635,21 @@ $('#chSearch').addEventListener('input',renderChannels);
 
 /* ---------- Playback ---------- */
 function streamUrl(c){
+  if(CREDS.type==='m3u') return c.url;   // M3U streams carry their URL directly
   const id=c.stream_id, ext=c.container_extension||(state.type==='live'?'m3u8':'mp4');
   if(state.type==='live')return `${CREDS.host}/live/${enc(CREDS.user)}/${enc(CREDS.pass)}/${id}.m3u8`;
   if(state.type==='vod')return `${CREDS.host}/movie/${enc(CREDS.user)}/${enc(CREDS.pass)}/${id}.${ext}`;
   return null;
 }
 async function play(c){
-  if(state.type==='series')return playSeries(c);
+  if(state.type==='series' && CREDS.type!=='m3u')return playSeries(c);
   state.activeCh=c.stream_id; renderChannels();
   $('#placeholder').style.display='none';
-  const isLive=state.type==='live';
-  $('#now').innerHTML=`${isLive?'<div class="live-tag"><span class="pulse"></span>Live</div>':''}<h2>${esc(c.name)}</h2><div class="now-sub">${isLive?'Live stream':'On demand'} · ${(c.container_extension||'m3u8').toUpperCase()}</div><div class="buffering" id="buf">Connecting…</div>`;
-  loadStream(streamUrl(c),isLive);
+  const url=streamUrl(c);
+  const isLive = CREDS.type==='m3u' ? (url||'').includes('.m3u8') : state.type==='live';
+  const fmt = (url||'').split('.').pop().split('?')[0].toUpperCase().slice(0,4) || 'M3U8';
+  $('#now').innerHTML=`${isLive?'<div class="live-tag"><span class="pulse"></span>Live</div>':''}<h2>${esc(c.name)}</h2><div class="now-sub">${isLive?'Live stream':'On demand'} · ${fmt}</div><div class="buffering" id="buf">Connecting…</div>`;
+  loadStream(url,isLive);
 }
 async function playSeries(c){
   state.activeCh=c.series_id; renderChannels(); $('#placeholder').style.display='none';
@@ -337,6 +697,7 @@ document.querySelectorAll('.seg button').forEach(b=>{
     document.querySelectorAll('.seg button').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
     state.type=b.dataset.type; state.activeCat=null; state.channels=[];
+    $('#chSearch').value=''; $('#catSearch').value='';
     $('#chList').innerHTML='<div class="empty">Pick a category.</div>';
     loadCategories();
   };
@@ -375,10 +736,14 @@ function move(dir){
 document.addEventListener('keydown',e=>{
   const k=e.key, code=e.keyCode;
   const isTyping=document.activeElement&&document.activeElement.tagName==='INPUT';
-  // Media/back keys
+  // Media/back keys — priority: exit fullscreen video → close editor → player back to home
   if(k==='Backspace'||k==='XF86Back'||code===10009||code===461){
+    if(isTyping) return; // let text fields handle Backspace normally
     const vw=$('#videoWrap');
     if(vw.classList.contains('fs')){ vw.classList.remove('fs'); e.preventDefault(); return; }
+    if($('#editor').classList.contains('on')){ closeEditor(); e.preventDefault(); return; }
+    if($('#app').classList.contains('on')){ if(hls){hls.destroy();hls=null;} showHome(); e.preventDefault(); return; }
+    // On the home screen: let the system handle it (exit app)
   }
   if(k==='ArrowRight'){ if(!isTyping){move('right');e.preventDefault();} }
   else if(k==='ArrowLeft'){ if(!isTyping){move('left');e.preventDefault();} }
@@ -401,10 +766,12 @@ $('#videoWrap').addEventListener('click',()=>{
 
 /* ---------- Boot ---------- */
 (function boot(){
-  const saved=store.creds;
-  if(saved){ $('#host').value=saved.host; $('#user').value=saved.user; $('#pass').value=saved.pass; CREDS=saved;
-    connect(saved.host,saved.user,saved.pass).then(enterApp).catch(()=>{ setTimeout(focusFirstInLogin,100); });
-  } else { setTimeout(focusFirstInLogin,100); }
+  if(getAccounts().length){
+    showHome();
+  } else {
+    $('#login').style.display='flex';
+    setTimeout(focusFirstInLogin,100);
+  }
 })();
 </script>
 </body>
