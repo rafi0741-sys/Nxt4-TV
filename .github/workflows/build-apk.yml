@@ -1,0 +1,81 @@
+name: Build Android TV APK
+
+# Builds a debug APK on every push, and on manual trigger.
+# Download the finished APK from the run's "Artifacts" section.
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Fetch HLS.js into www
+        run: |
+          curl -L https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js -o www/hls.min.js
+
+      - name: Install Capacitor
+        run: npm install
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Patch manifest for Android TV
+        run: |
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          # Add leanback + touchscreen-optional features and network permission
+          python3 - "$MANIFEST" <<'PY'
+          import sys, re
+          p = sys.argv[1]
+          s = open(p, encoding='utf-8').read()
+
+          perms = '''    <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+              <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+              <uses-feature android:name="android.software.leanback" android:required="false" />
+          '''
+          if 'android.software.leanback' not in s:
+              s = s.replace('<application', perms + '\n    <application', 1)
+
+          # Add LEANBACK_LAUNCHER category alongside the existing LAUNCHER
+          if 'LEANBACK_LAUNCHER' not in s:
+              s = s.replace(
+                  '<category android:name="android.intent.category.LAUNCHER" />',
+                  '<category android:name="android.intent.category.LAUNCHER" />\n'
+                  '                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />',
+                  1)
+
+          open(p, 'w', encoding='utf-8').write(s)
+          print("Manifest patched for Android TV.")
+          PY
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build debug APK
+        run: cd android && chmod +x ./gradlew && ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: streamline-tv-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
