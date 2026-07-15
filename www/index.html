@@ -161,12 +161,14 @@
   .video-wrap { position: relative; background: #000; aspect-ratio: 16/9; width: 100%; }
   .video-wrap video { width: 100%; height: 100%; background: #000; }
   .video-wrap.fs { position: fixed; inset: 0; z-index: 90; aspect-ratio: auto; }
-  .back-overlay { display: none; position: absolute; top: 18px; left: 18px; z-index: 95;
-    padding: 12px 20px 12px 16px; background: rgba(11,18,14,0.72); border: 1px solid rgba(255,255,255,0.14);
-    color: var(--text); font-size: 17px; font-weight: 700; border-radius: 12px; backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px); letter-spacing: .01em; }
-  .video-wrap.fs .back-overlay { display: block; }
-  .back-overlay.focused, .back-overlay:focus { outline: none; box-shadow: 0 0 0 3px var(--focus), 0 0 22px rgba(195,236,63,0.45); background: rgba(11,18,14,0.9); }
+  .back-overlay { display: none; position: absolute; top: 20px; left: 20px; z-index: 95;
+    padding: 14px 24px 14px 18px; background: rgba(11,18,14,0.78); border: 1.5px solid rgba(255,255,255,0.18);
+    color: var(--text); font-size: 19px; font-weight: 700; border-radius: 14px; backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px); letter-spacing: .01em; box-shadow: 0 6px 24px rgba(0,0,0,0.4); }
+  .video-wrap.fs .back-overlay { display: flex; align-items: center; gap: 4px; opacity: 1; transition: opacity .35s ease; }
+  .video-wrap.fs.controls-hidden .back-overlay { opacity: 0; pointer-events: none; }
+  .video-wrap.fs.controls-hidden { cursor: none; }
+  .back-overlay.focused, .back-overlay:focus { outline: none; box-shadow: 0 0 0 3px var(--focus), 0 0 26px rgba(195,236,63,0.5); background: rgba(11,18,14,0.94); color: var(--accent); }
   .video-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: var(--muted); text-align: center; }
   .video-placeholder .ico { font-size: 54px; opacity: .5; }
   .now { padding: 24px 28px; border-top: 1px solid var(--line); overflow-y: auto; flex: 1; scrollbar-width: none; }
@@ -276,7 +278,7 @@
 
   <div class="col stage" data-col="2">
     <div class="video-wrap" id="videoWrap">
-      <button class="back-overlay focusable" id="backBtn">‹ Back</button>
+      <button class="back-overlay focusable" id="backBtn">← Back</button>
       <video id="video" playsinline></video>
       <div class="video-placeholder" id="placeholder"><div class="ico">▶</div><div>Select a channel to start</div></div>
     </div>
@@ -752,6 +754,13 @@ document.addEventListener('keydown',e=>{
     if($('#app').classList.contains('on')){ if(hls){hls.destroy();hls=null;} showHome(); e.preventDefault(); return; }
     // On the home screen: let the system handle it (exit app)
   }
+  // While in fullscreen, any other key just reveals the controls (Back button) and keeps focus on it.
+  if($('#videoWrap').classList.contains('fs')){
+    showControls();
+    focusEl($('#backBtn'));
+    e.preventDefault();
+    return;
+  }
   if(k==='ArrowRight'){ if(!isTyping){move('right');e.preventDefault();} }
   else if(k==='ArrowLeft'){ if(!isTyping){move('left');e.preventDefault();} }
   else if(k==='ArrowUp'){ move('up'); e.preventDefault(); }
@@ -766,24 +775,39 @@ document.addEventListener('keydown',e=>{
 });
 
 // Fullscreen helpers
+let controlsTimer=null;
+function showControls(){
+  const vw=$('#videoWrap');
+  vw.classList.remove('controls-hidden');
+  clearTimeout(controlsTimer);
+  controlsTimer=setTimeout(()=>{ if(vw.classList.contains('fs')) vw.classList.add('controls-hidden'); },4000);
+}
 function enterFs(){
   const vw=$('#videoWrap');
   if(!($('#video').src||hls)) return;
   vw.classList.add('fs');
+  showControls();
   setTimeout(()=>focusEl($('#backBtn')),60); // land focus on Back so remote Back/OK is intuitive
 }
 function exitFs(){
   const vw=$('#videoWrap');
-  vw.classList.remove('fs');
+  clearTimeout(controlsTimer);
+  vw.classList.remove('fs','controls-hidden');
   // return focus to the channel list (the list we came from)
   setTimeout(()=>{ const active=document.querySelector('#chList .ch.active')||document.querySelector('#chList .ch'); if(active) focusEl(active); },60);
 }
-// Click/OK on the video toggles fullscreen
+// Click/OK on the video:
+//  - not fullscreen: enter fullscreen
+//  - fullscreen + controls hidden: reveal controls (do NOT exit)
+//  - fullscreen + controls visible: reveal again / keep them (still don't exit)
 $('#videoWrap').addEventListener('click',(e)=>{
   if(e.target.closest('#backBtn')) return; // Back handled separately
   const vw=$('#videoWrap');
-  if(vw.classList.contains('fs')) exitFs(); else enterFs();
+  if(!vw.classList.contains('fs')){ enterFs(); }
+  else { showControls(); }   // tap in fullscreen just reveals controls
 });
+// Any pointer movement in fullscreen reveals controls too
+$('#videoWrap').addEventListener('mousemove',()=>{ if($('#videoWrap').classList.contains('fs')) showControls(); });
 // Visible Back button → exit fullscreen back to the channel list
 $('#backBtn').addEventListener('click',(e)=>{ e.stopPropagation(); exitFs(); });
 
