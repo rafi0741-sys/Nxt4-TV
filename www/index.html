@@ -161,6 +161,12 @@
   .video-wrap { position: relative; background: #000; aspect-ratio: 16/9; width: 100%; }
   .video-wrap video { width: 100%; height: 100%; background: #000; }
   .video-wrap.fs { position: fixed; inset: 0; z-index: 90; aspect-ratio: auto; }
+  .back-overlay { display: none; position: absolute; top: 18px; left: 18px; z-index: 95;
+    padding: 12px 20px 12px 16px; background: rgba(11,18,14,0.72); border: 1px solid rgba(255,255,255,0.14);
+    color: var(--text); font-size: 17px; font-weight: 700; border-radius: 12px; backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px); letter-spacing: .01em; }
+  .video-wrap.fs .back-overlay { display: block; }
+  .back-overlay.focused, .back-overlay:focus { outline: none; box-shadow: 0 0 0 3px var(--focus), 0 0 22px rgba(195,236,63,0.45); background: rgba(11,18,14,0.9); }
   .video-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: var(--muted); text-align: center; }
   .video-placeholder .ico { font-size: 54px; opacity: .5; }
   .now { padding: 24px 28px; border-top: 1px solid var(--line); overflow-y: auto; flex: 1; scrollbar-width: none; }
@@ -270,6 +276,7 @@
 
   <div class="col stage" data-col="2">
     <div class="video-wrap" id="videoWrap">
+      <button class="back-overlay focusable" id="backBtn">‹ Back</button>
       <video id="video" playsinline></video>
       <div class="video-placeholder" id="placeholder"><div class="ico">▶</div><div>Select a channel to start</div></div>
     </div>
@@ -740,7 +747,7 @@ document.addEventListener('keydown',e=>{
   if(k==='Backspace'||k==='XF86Back'||code===10009||code===461){
     if(isTyping) return; // let text fields handle Backspace normally
     const vw=$('#videoWrap');
-    if(vw.classList.contains('fs')){ vw.classList.remove('fs'); e.preventDefault(); return; }
+    if(vw.classList.contains('fs')){ exitFs(); e.preventDefault(); return; }
     if($('#editor').classList.contains('on')){ closeEditor(); e.preventDefault(); return; }
     if($('#app').classList.contains('on')){ if(hls){hls.destroy();hls=null;} showHome(); e.preventDefault(); return; }
     // On the home screen: let the system handle it (exit app)
@@ -758,11 +765,27 @@ document.addEventListener('keydown',e=>{
   }
 });
 
-// Double-click / OK on video toggles fullscreen playback
-$('#videoWrap').addEventListener('click',()=>{
+// Fullscreen helpers
+function enterFs(){
   const vw=$('#videoWrap');
-  if($('#video').src||hls){ vw.classList.toggle('fs'); }
+  if(!($('#video').src||hls)) return;
+  vw.classList.add('fs');
+  setTimeout(()=>focusEl($('#backBtn')),60); // land focus on Back so remote Back/OK is intuitive
+}
+function exitFs(){
+  const vw=$('#videoWrap');
+  vw.classList.remove('fs');
+  // return focus to the channel list (the list we came from)
+  setTimeout(()=>{ const active=document.querySelector('#chList .ch.active')||document.querySelector('#chList .ch'); if(active) focusEl(active); },60);
+}
+// Click/OK on the video toggles fullscreen
+$('#videoWrap').addEventListener('click',(e)=>{
+  if(e.target.closest('#backBtn')) return; // Back handled separately
+  const vw=$('#videoWrap');
+  if(vw.classList.contains('fs')) exitFs(); else enterFs();
 });
+// Visible Back button → exit fullscreen back to the channel list
+$('#backBtn').addEventListener('click',(e)=>{ e.stopPropagation(); exitFs(); });
 
 /* ---------- Boot ---------- */
 (function boot(){
