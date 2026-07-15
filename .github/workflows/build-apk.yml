@@ -29,9 +29,59 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Locate web files and ensure www/ exists
+        run: |
+          set -e
+          echo "Repo contents:"
+          ls -la
+          if [ ! -f www/index.html ]; then
+            echo "www/index.html not found — searching for index.html..."
+            SRC=$(find . -name index.html -not -path './node_modules/*' | head -n1)
+            if [ -z "$SRC" ]; then
+              echo "ERROR: no index.html anywhere in the repo."; exit 1
+            fi
+            echo "Found index.html at: $SRC"
+            mkdir -p www
+            cp "$(dirname "$SRC")"/* www/ 2>/dev/null || true
+          fi
+          echo "www/ now contains:"
+          ls -la www
+
       - name: Fetch HLS.js into www
         run: |
-          curl -L https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js -o www/hls.min.js
+          curl -fL --retry 3 https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js -o www/hls.min.js
+          ls -la www
+
+      - name: Ensure Capacitor config exists
+        run: |
+          if [ ! -f capacitor.config.json ]; then
+            cat > capacitor.config.json <<'JSON'
+          {
+            "appId": "com.nxt4.tv",
+            "appName": "Nxt4 TV",
+            "webDir": "www",
+            "server": { "androidScheme": "http", "cleartext": true },
+            "android": { "allowMixedContent": true }
+          }
+          JSON
+          fi
+          if [ ! -f package.json ]; then
+            cat > package.json <<'JSON'
+          {
+            "name": "nxt4-tv",
+            "version": "1.0.0",
+            "private": true,
+            "dependencies": {
+              "@capacitor/android": "^6.1.2",
+              "@capacitor/core": "^6.1.2"
+            },
+            "devDependencies": {
+              "@capacitor/cli": "^6.1.2"
+            }
+          }
+          JSON
+          fi
+          cat capacitor.config.json
 
       - name: Install Capacitor
         run: npm install
@@ -41,32 +91,7 @@ jobs:
 
       - name: Patch manifest for Android TV
         run: |
-          MANIFEST=android/app/src/main/AndroidManifest.xml
-          # Add leanback + touchscreen-optional features and network permission
-          python3 - "$MANIFEST" <<'PY'
-          import sys, re
-          p = sys.argv[1]
-          s = open(p, encoding='utf-8').read()
-
-          perms = '''    <uses-permission android:name="android.permission.INTERNET" />
-              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-              <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-              <uses-feature android:name="android.software.leanback" android:required="false" />
-          '''
-          if 'android.software.leanback' not in s:
-              s = s.replace('<application', perms + '\n    <application', 1)
-
-          # Add LEANBACK_LAUNCHER category alongside the existing LAUNCHER
-          if 'LEANBACK_LAUNCHER' not in s:
-              s = s.replace(
-                  '<category android:name="android.intent.category.LAUNCHER" />',
-                  '<category android:name="android.intent.category.LAUNCHER" />\n'
-                  '                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />',
-                  1)
-
-          open(p, 'w', encoding='utf-8').write(s)
-          print("Manifest patched for Android TV.")
-          PY
+          python3 scripts/patch_manifest.py android/app/src/main/AndroidManifest.xml
 
       - name: Sync Capacitor
         run: npx cap sync android
@@ -77,5 +102,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: streamline-tv-debug-apk
+          name: nxt4-tv-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
