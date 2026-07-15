@@ -1,0 +1,12 @@
+{
+  "appId": "com.streamline.tv",
+  "appName": "Streamline TV",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
