@@ -1,6 +1,6 @@
 {
-  "appId": "com.streamline.tv",
-  "appName": "Streamline TV",
+  "appId": "com.nxtv.app",
+  "appName": "NXTV",
   "webDir": "www",
   "server": {
     "androidScheme": "http",
