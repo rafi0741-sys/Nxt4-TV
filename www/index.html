@@ -312,7 +312,6 @@
       <button data-type="vod" class="focusable">Movies</button>
       <button data-type="series" class="focusable">Series</button>
     </div>
-    <input class="cat-search focusable" id="catSearch" placeholder="Filter categories…">
     <div id="catList"></div>
     <button class="logout focusable" id="logout">Sign out</button>
   </div>
@@ -686,7 +685,7 @@ async function loadCategories(){
   catch{ list.innerHTML='<div class="empty">Failed to load.</div>'; } finally{ endLoad(); }
 }
 function renderCategories(){
-  const q=$('#catSearch').value.toLowerCase(), list=$('#catList');
+  const el=$('#catSearch'); const q=el?el.value.toLowerCase():''; const list=$('#catList');
   list.innerHTML='';
   const pin=(id,label,cls)=>{
     const d=document.createElement('div');
@@ -710,7 +709,7 @@ function renderCategories(){
     list.appendChild(d);
   });
 }
-$('#catSearch').addEventListener('input',renderCategories);
+if($('#catSearch')) $('#catSearch').addEventListener('input',renderCategories);
 
 /* ---------- Channels ---------- */
 async function loadChannels(catId){
@@ -749,7 +748,7 @@ function renderChannels(){
   items.slice(0,RENDER_CAP).forEach(c=>{
     const id=c.stream_id||c.series_id, logo=c.stream_icon||c.cover;
     const div=document.createElement('div');
-    div.className='ch focusable'+(state.activeCh===id?' active':''); div.tabIndex=0;
+    div.className='ch focusable'+(state.activeCh===id?' active':''); div.tabIndex=0; div.__streamId=id;
     const img=logo?`<img src="${esc(logo)}" loading="lazy" onerror="this.outerHTML='<div class=noimg>◉</div>'">`:`<div class="noimg">◉</div>`;
     const sub=state.type==='live'?'LIVE':(c.rating?'★ '+c.rating:(state.type==='series'?'SERIES':'MOVIE'));
     // Live channels get a favorite star toggle
@@ -983,7 +982,7 @@ document.querySelectorAll('.seg button').forEach(b=>{
     document.querySelectorAll('.seg button').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
     state.type=b.dataset.type; state.activeCat=null; state.channels=[];
-    $('#chSearch').value=''; $('#catSearch').value='';
+    $('#chSearch').value=''; if($('#catSearch')) $('#catSearch').value='';
     $('#chList').innerHTML='<div class="empty">Pick a category.</div>';
     loadCategories();
   };
@@ -996,15 +995,27 @@ function current(){ return document.querySelector('.focused')||document.activeEl
 function focusFirstInCol(col){ const el=document.querySelector(`[data-col="${col}"] .focusable`); focusEl(el); }
 function focusFirstInLogin(){ focusEl($('#host')); }
 
-// Geometric nearest-neighbor navigation
+// Which column (0/1/2) an element sits in, or -1 if none
+function colOf(el){ const c=el.closest('[data-col]'); return c?parseInt(c.getAttribute('data-col')):-1; }
+
+// Geometric nearest-neighbor navigation.
+//  - Up/Down: stay WITHIN the current column (so the channel list scrolls, sidebar scrolls,
+//    and focus never jumps sideways into another column).
+//  - Left/Right: move BETWEEN columns.
 function move(dir){
   const els=focusables(); const cur=current();
   if(!cur||!els.includes(cur)){ focusEl(els[0]); return; }
   const cr=cur.getBoundingClientRect();
   const cx=cr.left+cr.width/2, cy=cr.top+cr.height/2;
+  const curCol=colOf(cur);
+  const vertical = (dir==='up'||dir==='down');
   let best=null, bestScore=Infinity;
   for(const el of els){
     if(el===cur)continue;
+    const elCol=colOf(el);
+    // vertical moves must stay in the same column; horizontal must change column
+    if(vertical){ if(elCol!==curCol) continue; }
+    else { if(elCol===curCol) continue; }
     const r=el.getBoundingClientRect();
     const x=r.left+r.width/2, y=r.top+r.height/2;
     const dx=x-cx, dy=y-cy;
@@ -1016,6 +1027,8 @@ function move(dir){
     const score=primary+cross*2.5; // penalize cross-axis drift
     if(score<bestScore){ bestScore=score; best=el; }
   }
+  // Right from the channel list with nothing to the right → start playback of the focused channel
+  if(!best && dir==='right' && cur.classList.contains('ch')){ cur.click(); return; }
   if(best)focusEl(best);
 }
 
@@ -1064,6 +1077,15 @@ document.addEventListener('keydown',e=>{
     const cur=current();
     if(cur){
       if(cur.tagName==='INPUT'){ return; } // let it type / soft keyboard
+      // OK on a channel row: if it's already the one playing, go fullscreen; else play it
+      if(cur.classList.contains('ch')){
+        const id=cur.__streamId;
+        if(id!=null && id===state.activeCh && ($('#video').src||hls)){ enterFs(); }
+        else { cur.click(); }
+        e.preventDefault(); return;
+      }
+      // OK on the video area (or nothing focusable) = go fullscreen if something is playing
+      if(cur===$('#video')||cur===$('#videoWrap')){ if($('#video').src||hls) enterFs(); e.preventDefault(); return; }
       cur.click(); e.preventDefault();
     }
   }
